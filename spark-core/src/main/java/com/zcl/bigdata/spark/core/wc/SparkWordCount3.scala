@@ -3,7 +3,7 @@ package com.zcl.bigdata.spark.core.wc
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
-object SparkWordCount {
+object SparkWordCount3 {
   def main(args: Array[String]): Unit = {
     //》》》》》》建立和spark框架的连接
     val sparkConf = new SparkConf().setMaster("local").setAppName("WordCount")
@@ -18,22 +18,14 @@ object SparkWordCount {
     val words: RDD[String] = lines.flatMap(_.split(" "))
 
 
-    //分组
-    val wordGroup = words.groupBy(word => word)
-    println(wordGroup)
+    val wordToOne = words.map(
+      word => (word, 1)
+    )
 
-
-    //模式匹配
-    val wordCount = wordGroup.map {
-      case (word, list) => {
-        (word, list.size)
-      }
-    }
-
-    val arr = wordCount.collect()
-    for (elem <- arr) {
-      print(elem)   //(hello,4)(world,2)(spark,2)
-    }
+    //spark框架将分组和聚合通过一个方法实现
+    //reduceByKey相同的key对value做聚合
+    val count = wordToOne.reduceByKey(_ + _)
+    count.foreach(print)  //(hello,4)(world,2)(spark,2)
 
     //》》》》》关闭连接
     sc.stop()
